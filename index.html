@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Colleague Picker Wheel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #wheelCanvas {
+      margin: 0 auto;
+      display: block;
+      border: 5px solid #333;
+      border-radius: 50%;
+      background: #fff;
+      transition: transform 4s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+    #spinBtn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+    #pointer {
+      width: 0; 
+      height: 0; 
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 40px solid red;
+      position: relative;
+      margin: 0 auto -260px auto;
+    }
+  </style>
+</head>
+<body>
+
+<h2>Spin to Pick a Colleague!</h2>
+<div id="pointer"></div>
+<canvas id="wheelCanvas" width="500" height="500"></canvas>
+<button id="spinBtn">Spin</button>
+<p id="result"></p>
+
+<script>
+const colleagues = ["Alice", "Bob", "Charlie", "Diana", "Ethan"]; // Add your colleagues here
+const colors = ["#FF6384","#36A2EB","#FFCE56","#8BC34A","#FF9800"]; // colors for sections
+
+const canvas = document.getElementById('wheelCanvas');
+const ctx = canvas.getContext('2d');
+const wheelRadius = canvas.width / 2;
+
+function drawWheel() {
+    const anglePerColleague = (2 * Math.PI) / colleagues.length;
+    for (let i = 0; i < colleagues.length; i++) {
+        ctx.beginPath();
+        ctx.moveTo(wheelRadius, wheelRadius);
+        ctx.arc(
+            wheelRadius,
+            wheelRadius,
+            wheelRadius,
+            i * anglePerColleague,
+            (i + 1) * anglePerColleague
+        );
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw text
+        ctx.save();
+        ctx.translate(wheelRadius, wheelRadius);
+        ctx.rotate(i * anglePerColleague + anglePerColleague/2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 20px Arial";
+        ctx.fillText(colleagues[i], wheelRadius - 10, 10);
+        ctx.restore();
+    }
+}
+
+drawWheel();
+
+let spinning = false;
+
+function spinWheel() {
+    if (spinning) return;
+    spinning = true;
+
+    const spins = Math.floor(Math.random() * 3) + 5; // 5-7 full spins
+    const anglePerColleague = 360 / colleagues.length;
+    const selectedIndex = Math.floor(Math.random() * colleagues.length);
+    const finalAngle = 360 * spins - (selectedIndex * anglePerColleague) - anglePerColleague/2;
+
+    canvas.style.transform = `rotate(${finalAngle}deg)`; // Fixed rotation
+
+    setTimeout(() => {
+        document.getElementById('result').innerText = "Selected: " + colleagues[selectedIndex];
+        localStorage.setItem('hasSpun', 'true');
+        document.getElementById('spinBtn').disabled = true;
+    }, 4000);
+}
+
+const spinBtn = document.getElementById('spinBtn');
+
+if (localStorage.getItem('hasSpun')) {
+    document.getElementById('result').innerText = "You already picked a colleague!";
+    spinBtn.disabled = true;
+} else {
+    spinBtn.addEventListener('click', spinWheel);
+}
+</script>
+
+</body>
+</html>
